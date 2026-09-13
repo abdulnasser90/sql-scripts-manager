@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتبة سكريبتات SQL - v2.0 (SQLite)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --secondary: #475569;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --radius: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar */
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .version-badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-right: 6px;
+        }
+
+        .db-status {
+            font-size: 13px;
+            color: var(--success);
+            background: #ecfdf5;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            border: 1px solid #a7f3d0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background-color: #f1f5f9;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        /* Layout Container */
+        .app-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 71px);
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        aside {
+            width: var(--sidebar-width);
+            background: var(--card-bg);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 14px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+
+        .category-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .category-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        .category-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .category-name-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-badge {
+            background: #e2e8f0;
+            color: #475569;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .category-item.active .category-badge {
+            background: #bfdbfe;
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 24px 30px;
+            gap: 20px;
+        }
+
+        /* Search Controls */
+        .search-panel {
+            background: var(--card-bg);
+            padding: 18px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        .search-field {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-field input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            background: #fdfdfd;
+        }
+
+        .search-field input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .search-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* Content Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-view-title {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .count-pill {
+            font-size: 13px;
+            font-weight: 600;
+            background: #e2e8f0;
+            color: #475569;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        /* Scripts Table */
+        .table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .script-name {
+            font-weight: 700;
+            color: #1e293b;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            direction: ltr;
+            text-align: right;
+            display: inline-block;
+        }
+
+        .cat-tag {
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .badge-dup {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .fav-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #cbd5e1;
+            transition: color 0.15s, transform 0.15s;
+        }
+
+        .fav-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .fav-btn.active {
+            color: #f59e0b;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-action {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--secondary);
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-action:hover {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        .btn-action.copy:hover {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: var(--success);
+        }
+
+        .btn-action.edit:hover {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: var(--primary);
+        }
+
+        .btn-action.delete:hover {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: var(--danger);
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 12px;
+            width: 750px;
+            max-width: 92vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.open .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+        .modal-close-btn:hover { color: var(--text-main); }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .form-control {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.15s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        textarea.code-editor {
+            font-family: 'Fira Code', Consolas, monospace;
+            font-size: 13px;
+            min-height: 250px;
+            direction: ltr;
+            text-align: left;
+            line-height: 1.5;
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 14px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #f8fafc;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        /* View Modal Code Box */
+        pre.code-view-box {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 18px;
+            border-radius: 8px;
+            font-family: 'Fira Code', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+            max-height: 55vh;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 9999;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon">⚡</div>
+            <div>
+                <div class="brand-title">
+                    مكتبة سكريبتات SQL 
+                    <span class="version-badge">v2.0</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted);">إدارة ومزامنة السكريبتات الذكية</div>
+            </div>
+            <div class="db-status" style="margin-right: 15px;">
+                <span style="display:inline-block; width:8px; height:8px; background:var(--success); border-radius:50%;"></span>
+                SQLite متصل
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <span>➕</span>
+                <span>إضافة سكريبت جديد</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- App Body -->
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside>
+            <div class="sidebar-section-title">الأقسام الرئيسية</div>
+            <ul class="category-list" id="categoriesList">
+                <li class="category-item active" data-cat="ALL" onclick="selectCategory('ALL')">
+                    <div class="category-name-group">
+                        <span>📁</span>
+                        <span>جميع السكريبتات</span>
+                    </div>
+                    <span class="category-badge" id="totalCountBadge">0</span>
+                </li>
+                <li class="category-item" data-cat="FAVORITES" onclick="selectCategory('FAVORITES')">
+                    <div class="category-name-group">
+                        <span>⭐</span>
+                        <span>المفضلة</span>
+                    </div>
+                    <span class="category-badge" id="favCountBadge">0</span>
+                </li>
+            </ul>
+
+            <div class="sidebar-section-title" style="margin-top: 24px;">تصنيفات السكريبتات</div>
+            <ul class="category-list" id="dynamicCategories">
+                <!-- Dynamically populated categories -->
+            </ul>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main>
+            <!-- Search Controls -->
+            <div class="search-panel">
+                <div class="search-field">
+                    <label>🔍 بحث بالاسم</label>
+                    <input type="text" id="filterName" placeholder="مثال: C_INVOICE..." oninput="handleSearch()">
+                </div>
+                <div class="search-field">
+                    <label>📝 بحث في الوصف</label>
+                    <input type="text" id="filterDesc" placeholder="مثال: تحديث جدول..." oninput="handleSearch()">
+                </div>
+                <div class="search-field">
+                    <label>📄 بحث في كود SQL</label>
+                    <input type="text" id="filterContent" placeholder="مثال: SELECT, UPDATE..." oninput="handleSearch()">
+                </div>
+                <div style="align-self: flex-end;">
+                    <button class="btn btn-secondary" onclick="clearFilters()" title="إعادة تعيين البحث">
+                        🔄 مسح الفلاتر
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Header -->
+            <div class="content-header">
+                <div class="current-view-title">
+                    <span id="currentViewTitle">جميع السكريبتات</span>
+                    <span class="count-pill" id="showingCountBadge">0 سكريبت</span>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 44px; text-align: center;">★</th>
+                            <th style="width: 25%;">اسم السكريبت</th>
+                            <th style="width: 14%;">القسم</th>
+                            <th>الوصف</th>
+                            <th style="width: 80px; text-align: center;">الحالة</th>
+                            <th style="width: 210px; text-align: center;">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scriptsTableBody">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <h3>لا توجد سكريبتات مطابقة</h3>
+                    <p>جرب تغيير معايير البحث أو اختيار قسم آخر</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADD SCRIPT MODAL -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>➕ إضافة سكريبت جديد</h3>
+                <button class="modal-close-btn" onclick="closeModal('addModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; gap: 14px;">
+                    <div class="form-group" style="flex: 2;">
+                        <label>اسم السكريبت (Script Name) *</label>
+                        <input type="text" class="form-control" id="addName" placeholder="مثال: fix_customer_balance.sql" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>القسم (Category) *</label>
+                        <input type="text" class="form-control" id="addCategory" list="categoriesDatalist" placeholder="اختر أو اكتب قسم جديد">
+                        <datalist id="categoriesDatalist"></datalist>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>الوصف (Description)</label>
+                    <input type="text" class="form-control" id="addDesc" placeholder="ما الذي يقوم به هذا السكريبت؟">
+                </div>
+
+                <div class="form-group">
+                    <label>كود SQL (SQL Content) *</label>
+                    <textarea class="form-control code-editor" id="addContent" placeholder="-- اكتب أو الصق كود SQL هنا..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="submitAddScript()">💾 حفظ وإضافة إلى SQLite</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT SCRIPT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>✏️ تعديل سكريبت</h3>
+                <button class="modal-close-btn" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div style="display: flex; gap: 14px;">
+                    <div class="form-group" style="flex: 2;">
+                        <label>اسم السكريبت *</label>
+                        <input type="text" class="form-control" id="editName" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>القسم *</label>
+                        <input type="text" class="form-control" id="editCategory" list="categoriesDatalistEdit">
+                        <datalist id="categoriesDatalistEdit"></datalist>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <input type="text" class="form-control" id="editDesc">
+                </div>
+
+                <div class="form-group">
+                    <label>كود SQL</label>
+                    <textarea class="form-control code-editor" id="editContent"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="submitEditScript()">💾 حفظ التعديلات في SQLite</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW CODE MODAL -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal-card" style="width: 850px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="viewTitle" style="font-family:'Fira Code', monospace; direction:ltr; display:inline-block;"></h3>
+                    <span id="viewCategoryBadge" class="cat-tag" style="margin-right: 10px;"></span>
+                </div>
+                <button class="modal-close-btn" onclick="closeModal('viewModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="viewDescBox" style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;"></div>
+                <pre class="code-view-box" id="viewCode"></pre>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-primary" id="viewCopyBtn" onclick="copyCurrentViewCode()">📋 نسخ الكود</button>
+                <button class="btn btn-secondary" onclick="closeModal('viewModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-card" style="width: 440px;">
+            <div class="modal-header">
+                <h3 style="color: var(--danger);">🗑️ تأكيد الحذف</h3>
+                <button class="modal-close-btn" onclick="closeModal('deleteModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من رغبتك في حذف السكريبت التالي نهائياً؟</p>
+                <p style="font-family: 'Fira Code', monospace; font-weight: 700; color: #1e293b; direction: ltr; text-align: right; margin-top: 8px;" id="deleteScriptName"></p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">سيتم حذف السكريبت من قاعدة بيانات SQLite وملفه من القرص.</p>
+                <input type="hidden" id="deleteId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">إلغاء</button>
+                <button class="btn btn-danger" onclick="submitDeleteScript()">نعم، احذف السكريبت</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State
+        let currentCategory = 'ALL';
+        let categoriesData = [];
+        let allScripts = [];
+        let searchTimeout = null;
+        let currentViewContent = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadScripts();
+        });
+
+        // Toast Helper
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = isError ? '#ef4444' : '#0f172a';
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Load Categories
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                const data = await res.json();
+                categoriesData = data.categories || [];
+
+                document.getElementById('totalCountBadge').textContent = data.total || 0;
+                document.getElementById('favCountBadge').textContent = data.favorites || 0;
+
+                const list = document.getElementById('dynamicCategories');
+                list.innerHTML = '';
+
+                // Populate Datalist for add/edit category dropdown
+                const datalists = [document.getElementById('categoriesDatalist'), document.getElementById('categoriesDatalistEdit')];
+                datalists.forEach(dl => {
+                    if (dl) {
+                        dl.innerHTML = categoriesData.map(c => `<option value="${escapeHtml(c.category)}">`).join('');
+                    }
+                });
+
+                categoriesData.forEach(c => {
+                    const li = document.createElement('li');
+                    li.className = `category-item ${currentCategory === c.category ? 'active' : ''}`;
+                    li.setAttribute('data-cat', c.category);
+                    li.onclick = () => selectCategory(c.category);
+                    li.innerHTML = `
+                        <div class="category-name-group">
+                            <span>📂</span>
+                            <span>${escapeHtml(c.category)}</span>
+                        </div>
+                        <span class="category-badge">${c.count}</span>
+                    `;
+                    list.appendChild(li);
+                });
+            } catch (err) {
+                console.error('Error loading categories:', err);
+                showToast('تعذر تحميل الأقسام', true);
+            }
+        }
+
+        // Select Category
+        function selectCategory(cat) {
+            currentCategory = cat;
+
+            document.querySelectorAll('.category-item').forEach(item => {
+                if (item.getAttribute('data-cat') === cat) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            if (cat === 'ALL') {
+                document.getElementById('currentViewTitle').textContent = 'جميع السكريبتات';
+            } else if (cat === 'FAVORITES') {
+                document.getElementById('currentViewTitle').textContent = '⭐ السكريبتات المفضلة';
+            } else {
+                document.getElementById('currentViewTitle').textContent = 'قسم: ' + cat;
+            }
+
+            loadScripts();
+        }
+
+        // Load Scripts
+        async function loadScripts() {
+            try {
+                const name = document.getElementById('filterName').value.trim();
+                const desc = document.getElementById('filterDesc').value.trim();
+                const content = document.getElementById('filterContent').value.trim();
+
+                const params = new URLSearchParams();
+                if (currentCategory === 'FAVORITES') {
+                    params.append('favorites', 'true');
+                } else if (currentCategory !== 'ALL') {
+                    params.append('category', currentCategory);
+                }
+
+                if (name) params.append('searchName', name);
+                if (desc) params.append('searchDesc', desc);
+                if (content) params.append('searchContent', content);
+
+                const res = await fetch('/api/scripts?' + params.toString());
+                allScripts = await res.json();
+
+                renderScripts(allScripts);
+            } catch (err) {
+                console.error('Error loading scripts:', err);
+                showToast('تعذر جلب السكريبتات', true);
+            }
+        }
+
+        // Search Debounce
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadScripts();
+            }, 250);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterName').value = '';
+            document.getElementById('filterDesc').value = '';
+            document.getElementById('filterContent').value = '';
+            loadScripts();
+        }
+
+        // Render Table
+        function renderScripts(scripts) {
+            const tbody = document.getElementById('scriptsTableBody');
+            const emptyState = document.getElementById('emptyState');
+            document.getElementById('showingCountBadge').textContent = `${scripts.length} سكريبت`;
+
+            if (scripts.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            tbody.innerHTML = scripts.map(s => {
+                const isFav = s.is_favorite === 1;
+                const isDup = s.is_duplicate === 1;
+
+                return `
+                    <tr>
+                        <td style="text-align: center;">
+                            <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(${s.id})" title="${isFav ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}">
+                                ★
+                            </button>
+                        </td>
+                        <td>
+                            <span class="script-name">${escapeHtml(s.name)}</span>
+                        </td>
+                        <td>
+                            <span class="cat-tag">${escapeHtml(s.category)}</span>
+                        </td>
+                        <td style="color: var(--text-muted);">
+                            ${s.description ? escapeHtml(s.description) : '<span style="color:#cbd5e1;">(بدون وصف)</span>'}
+                        </td>
+                        <td style="text-align: center;">
+                            ${isDup ? '<span class="badge-dup">مكرر</span>' : '<span style="color:#94a3b8; font-size:12px;">أصلي</span>'}
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="action-btns" style="justify-content: center;">
+                                <button class="btn-action copy" onclick="copyScriptById(${s.id})" title="نسخ الكود">📋 نسخ</button>
+                                <button class="btn-action view" onclick="openViewModal(${s.id})" title="عرض الكود">👁️ عرض</button>
+                                <button class="btn-action edit" onclick="openEditModal(${s.id})" title="تعديل">✏️ تعديل</button>
+                                <button class="btn-action delete" onclick="openDeleteModal(${s.id}, '${escapeHtml(s.name)}')" title="حذف">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Toggle Favorite
+        async function toggleFavorite(id) {
+            try {
+                const res = await fetch(`/api/scripts/${id}/toggle-favorite`, { method: 'POST' });
+                if (res.ok) {
+                    loadCategories();
+                    loadScripts();
+                }
+            } catch (err) {
+                showToast('فشل تبديل المفضلة', true);
+            }
+        }
+
+        // Universal Clipboard Copy (works on localhost, HTTPS, and HTTP IP like http://10.1.1.250:3000)
+        async function copyTextToClipboard(text) {
+            if (!text) text = '';
+
+            // 1. Try modern API if available and context is secure
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (e) {
+                    console.warn('navigator.clipboard failed, attempting fallback...', e);
+                }
+            }
+
+            // 2. Fallback using textarea + document.execCommand('copy')
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.top = '0';
+                textarea.style.left = '0';
+                textarea.style.width = '2em';
+                textarea.style.height = '2em';
+                textarea.style.padding = '0';
+                textarea.style.border = 'none';
+                textarea.style.outline = 'none';
+                textarea.style.boxShadow = 'none';
+                textarea.style.background = 'transparent';
+                textarea.style.opacity = '0';
+                textarea.style.pointerEvents = 'none';
+
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                if (success) {
+                    return true;
+                }
+            } catch (err) {
+                console.error('execCommand copy error:', err);
+            }
+
+            return false;
+        }
+
+        // Copy Script
+        async function copyScriptById(id) {
+            const script = allScripts.find(s => s.id === id);
+            if (!script) return;
+
+            const success = await copyTextToClipboard(script.content || '');
+            if (success) {
+                showToast('✔️ تم نسخ الكود بنجاح إلى الحافظة');
+            } else {
+                showToast('فشل نسخ الكود', true);
+            }
+        }
+
+        // View Modal
+        function openViewModal(id) {
+            const script = allScripts.find(s => s.id === id);
+            if (!script) return;
+
+            currentViewContent = script.content || '';
+            document.getElementById('viewTitle').textContent = script.name;
+            document.getElementById('viewCategoryBadge').textContent = script.category;
+            document.getElementById('viewDescBox').textContent = script.description ? '📝 الوصف: ' + script.description : '';
+            document.getElementById('viewCode').textContent = currentViewContent;
+
+            openModal('viewModal');
+        }
+
+        async function copyCurrentViewCode() {
+            const success = await copyTextToClipboard(currentViewContent || '');
+            if (success) {
+                showToast('✔️ تم نسخ الكود بالكامل');
+            } else {
+                showToast('فشل النسخ', true);
+            }
+        }
+
+        // Add Modal
+        function openAddModal() {
+            document.getElementById('addName').value = '';
+            document.getElementById('addCategory').value = currentCategory !== 'ALL' && currentCategory !== 'FAVORITES' ? currentCategory : 'Others';
+            document.getElementById('addDesc').value = '';
+            document.getElementById('addContent').value = '';
+            openModal('addModal');
+        }
+
+        async function submitAddScript() {
+            const name = document.getElementById('addName').value.trim();
+            const category = document.getElementById('addCategory').value.trim();
+            const description = document.getElementById('addDesc').value.trim();
+            const content = document.getElementById('addContent').value;
+
+            if (!name) {
+                alert('يرجى إدخال اسم السكريبت');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/scripts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, category, description, content })
+                });
+
+                if (res.ok) {
+                    closeModal('addModal');
+                    showToast('🎉 تم إضافة السكريبت وحفظه في SQLite بنجاح');
+                    loadCategories();
+                    loadScripts();
+                } else {
+                    const err = await res.json();
+                    alert('خطأ: ' + (err.error || 'تعذر إضافة السكريبت'));
+                }
+            } catch (e) {
+                alert('تعذر الاتصال بالسيرفر');
+            }
+        }
+
+        // Edit Modal
+        function openEditModal(id) {
+            const script = allScripts.find(s => s.id === id);
+            if (!script) return;
+
+            document.getElementById('editId').value = script.id;
+            document.getElementById('editName').value = script.name;
+            document.getElementById('editCategory').value = script.category;
+            document.getElementById('editDesc').value = script.description || '';
+            document.getElementById('editContent').value = script.content || '';
+
+            openModal('editModal');
+        }
+
+        async function submitEditScript() {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value.trim();
+            const category = document.getElementById('editCategory').value.trim();
+            const description = document.getElementById('editDesc').value.trim();
+            const content = document.getElementById('editContent').value;
+
+            if (!name) {
+                alert('يرجى إدخال اسم السكريبت');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/scripts/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, category, description, content })
+                });
+
+                if (res.ok) {
+                    closeModal('editModal');
+                    showToast('💾 تم حفظ التعديلات في SQLite والقرص بنجاح');
+                    loadCategories();
+                    loadScripts();
+                } else {
+                    const err = await res.json();
+                    alert('خطأ: ' + (err.error || 'تعذر التعديل'));
+                }
+            } catch (e) {
+                alert('تعذر الاتصال بالسيرفر');
+            }
+        }
+
+        // Delete Modal
+        function openDeleteModal(id, name) {
+            document.getElementById('deleteId').value = id;
+            document.getElementById('deleteScriptName').textContent = name;
+            openModal('deleteModal');
+        }
+
+        async function submitDeleteScript() {
+            const id = document.getElementById('deleteId').value;
+            try {
+                const res = await fetch(`/api/scripts/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    closeModal('deleteModal');
+                    showToast('🗑️ تم حذف السكريبت بنجاح');
+                    loadCategories();
+                    loadScripts();
+                } else {
+                    alert('تعذر حذف السكريبت');
+                }
+            } catch (e) {
+                alert('تعذر الاتصال بالسيرفر');
+            }
+        }
+
+        // Modal Utilities
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('open');
+            }
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
