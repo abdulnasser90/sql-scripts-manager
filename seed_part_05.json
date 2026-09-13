@@ -1,0 +1,62 @@
+[
+  {
+    "id": 41,
+    "name": "Toad-Active.txt",
+    "category": "Others",
+    "description": "Various or unrecognized operations",
+    "content": "0-63920-03393-29060-05749\r\ndirac",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Others\\Toad-Active.txt",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 42,
+    "name": "InventoryCostAllocation.prc",
+    "category": "Procedures_Functions",
+    "description": "Creates or replaces procedure InventoryCostAllocation",
+    "content": "CREATE OR REPLACE PROCEDURE InventoryCostAllocation (\n   p_M_Product_ID IN NUMBER)\nAS\n   v_CostMethod              VARCHAR2 (100);\n   v_TotalQtyOnHnad          NUMBER;\n   v_SumCost                 NUMBER;\n   v_SumQty                  NUMBER;\n   v_UnitCost                NUMBER;\n   v_isTotalOnHnadIsZero     BOOLEAN := FALSE;\n   v_PreUnitCost             NUMBER := 0;\n   v_TransactionCount        NUMBER := 0;\n   v_TotalCost               NUMBER := 0;\n   v_TotalQtyTransaction     NUMBER := 0;\n   v_MovementType            VARCHAR2 (10);\n   v_SumQtyReceipt           NUMBER;\n   v_MovementQty             NUMBER;\n   v_LocatorID               NUMBER;\n   v_AttributeSetInstanceID  NUMBER;\n   v_CostingLevel            VARCHAR2 (100);\n   v_client_id               NUMBER;\n   v_org_id                  NUMBER;\n\n   CURSOR cur_Trx (...\n   -- Truncated for space, full procedure in file\n   );\nBEGIN\n   NULL;\nEND InventoryCostAllocation;\n",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Procedures_Functions/InventoryCostAllocation.prc",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 14:28:10"
+  },
+  {
+    "id": 43,
+    "name": "paymentAmtAvailable.sql",
+    "category": "Procedures_Functions",
+    "description": "Creates or replaces function paymentAmtAvailable",
+    "content": "CREATE OR REPLACE FUNCTION paymentAmtAvailable\r\n(\r\n    p_C_Payment_ID    IN    NUMBER\r\n)\r\nRETURN NUMBER \r\nAS\r\n    v_Currency_ID        NUMBER(10);\r\n    v_Precision         NUMBER := 0;\r\n    v_Min                NUMBER := 0;\r\n    v_AvailableAmt        NUMBER := 0;\r\n    v_IsReceipt         C_Payment.IsReceipt%TYPE;\r\n    v_Amt               NUMBER := 0;\r\n    CURSOR    Cur_Alloc    IS\r\n        SELECT    a.AD_Client_ID, a.AD_Org_ID, al.Amount, al.C_Currency_ID, A.STATEMENTDATE datetrx\r\n        FROM    c_cashline al\r\n          INNER JOIN c_cash  a ON (al.c_cash_id=a.c_cash_id)\r\n        WHERE    al.C_Payment_ID =p_C_Payment_ID\r\n          AND   a.IsActive='Y'\r\n          union all\r\n           SELECT    a.AD_Client_ID, a.AD_Org_ID, al.trxamt Amount, al.C_Currency_ID, A.STATEMENTDATE datetrx\r\n        FROM    c_bankstatementline al\r\n          INNER JOIN c_bankstatement  a ON (al.c_bankstatement_id=a.c_bankstatement_id)\r\n        WHERE    al.C_Payment_ID =p_C_Payment_ID\r\n          AND   a.IsActive='Y' ;\r\n        --  AND    al.C_Invoice_ID IS NOT NULL;\r\nBEGIN\r\n    --    Get Currency\r\n    SELECT    C_Currency_ID, PayAmt, IsReceipt\r\n      INTO    v_Currency_ID, v_AvailableAmt, v_IsReceipt\r\n    FROM    C_Payment_v     -- corrected for AP/AR\r\n    WHERE    C_Payment_ID = p_C_Payment_ID;\r\n--  DBMS_OUTPUT.PUT_LINE('== C_Payment_ID=' || p_C_Payment_ID || ', PayAmt=' || v_AvailableAmt || ', Receipt=' || v_IsReceipt);\r\n\r\n    SELECT StdPrecision\r\n        INTO v_Precision\r\n        FROM C_Currency\r\n        WHERE C_Currency_ID = v_Currency_ID;\r\n\r\n    SELECT POWER(1/10,v_Precision) INTO v_Min FROM DUAL;\r\n\r\n    --    Calculate Allocated Amount\r\n    FOR a IN Cur_Alloc LOOP\r\n        v_Amt := currencyConvert(a.Amount, a.C_Currency_ID, v_Currency_ID, a.DateTrx, null, a.AD_Client_ID, a.AD_Org_ID);\r\n        v_AvailableAmt := v_AvailableAmt - v_Amt;\r\n--      DBMS_OUTPUT.PUT_LINE('  Allocation=' || a.Amount || ' - Available=' || v_AvailableAmt);\r\n    END LOOP;\r\n\r\n    --    Ignore Rounding\r\n    IF (v_AvailableAmt > -v_Min AND v_AvailableAmt < v_Min) THEN\r\n        v_AvailableAmt := 0;\r\n    END IF;\r\n\r\n    --    Round to currency precision\r\n    v_AvailableAmt := ROUND(COALESCE(v_AvailableAmt,0), v_Precision);\r\n\r\n    RETURN    v_AvailableAmt;\r\nEND paymentAmtAvailable;\r\n/\r\n\r\n",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Procedures_Functions\\paymentAmtAvailable.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 44,
+    "name": "catexcompare between inventory trx and onhand qty .txt",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "select ML.LINE, sum (H.QTYONHAND) ,ML.MOVEMENTQTY  \r\nfrom M_Movement m\r\ninner join M_Movementline ml on M.M_MOVEMENT_ID = ML.M_MOVEMENT_ID\r\ninner join M_STORAGEONHAND h on ML.M_PRODUCT_ID  = H.M_PRODUCT_ID\r\n-- where ml.M_MOVEMENTline_ID in (select ml.M_MOVEMENTline_ID from M_Movementline where  M.M_MOVEMENT_ID = 1001541)\r\nwhere ml.m_product_id in (select m_product_id from m_movementline where ml.M_MOVEMENTline_ID in (select ml.M_MOVEMENTline_ID from M_Movementline where  M.M_MOVEMENT_ID = 1001541))\r\nand h.m_locator_id = 1000258\r\ngroup by ml.line,ML.MOVEMENTQTY  ",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\catexcompare between inventory trx and onhand qty .txt",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 45,
+    "name": "check c_payment has cashline-bankline-stageline.sql",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "/* Formatted on 25/07/2019 04:25:59  (QP5 v5.139.911.3011) */\r\nSELECT P.C_PAYMENT_ID,\r\n       P.DOCUMENTNO payment_no,\r\n       P.PAYAMT,\r\n       P.REMAININGAMOUNT,\r\n       (P.PAYAMT - P.REMAININGAMOUNT) deffamt,\r\n       (CASE WHEN B.LINE > 0 THEN 'Y' ELSE 'N' END)  Has_bank_Doc,\r\n       BS.DOCUMENTNO bank_no,\r\n       (CASE WHEN C.LINE > 0 THEN 'Y' ELSE 'N' END) Has_Checkstage_Doc,\r\n       CS.DOCUMENTNO checkstage_no,\r\n       (CASE WHEN CL.LINE > 0 THEN 'Y' ELSE 'N' END) Has_cash_Doc ,\r\n       CL.AMOUNT cash_amt,\r\n       CA.DOCUMENTNO cash_no\r\n  FROM c_payment p\r\n       LEFT OUTER JOIN C_BANKSTATEMENTline b\r\n          ON B.C_PAYMENT_ID = P.C_PAYMENT_ID\r\n       LEFT OUTER JOIN C_BANKSTATEMENT bs\r\n          ON BS.C_BANKSTATEMENT_ID = B.C_BANKSTATEMENT_ID\r\n       LEFT OUTER JOIN C_CheckStageline c\r\n          ON C.C_PAYMENT_ID = P.C_PAYMENT_ID\r\n       LEFT OUTER JOIN C_CheckStage cs\r\n          ON CS.C_CHECKSTAGE_ID = C.C_CHECKSTAGE_ID\r\n       LEFT OUTER JOIN c_cashline cl\r\n          ON CL.C_PAYMENT_ID = P.C_PAYMENT_ID\r\n       LEFT OUTER JOIN c_cash ca\r\n          ON CA.C_CASH_ID = cl.c_cash_id\r\n WHERE p.c_payment_id IN ();",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\check c_payment has cashline-bankline-stageline.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  }
+]
