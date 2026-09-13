@@ -1,0 +1,86 @@
+[
+  {
+    "id": 46,
+    "name": "declare.sql",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "/* Formatted on 25/12/2017 11:31:21 AM (QP5 v5.139.911.3011) */\r\nDECLARE\r\n   x   NUMBER;\r\nBEGIN\r\n   FOR r IN (SELECT m_product_id\r\n               FROM m_transaction\r\n              WHERE m_locator_id IN (1000212, 102))\r\n   LOOP\r\n      InventoryCostAllocation (r.m_product_id);\r\n      x := x + 1;\r\n\r\n      IF (MOD (x, 100) = 0)\r\n      THEN\r\n         COMMIT;\r\n      END IF;\r\n   END LOOP;\r\n\r\n   COMMIT;\r\nEND;",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\declare.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 47,
+    "name": "drill down.sql",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "/* Drill down  */\r\nSELECT W.NAME windowname,\r\n       TAB.NAME tabname,\r\n       C.NAME columnname,\r\n       C.COLUMNNAME colid,\r\n       F.DISPLAYLOGIC,\r\n       F.AD_FIELD_ID,\r\n       F.AD_REFERENCE_ID refid\r\n  FROM ad_field f\r\n       INNER JOIN ad_column c ON C.AD_COLUMN_ID = F.AD_COLUMN_ID\r\n       INNER JOIN ad_tab tab ON TAB.AD_TAB_ID = F.AD_TAB_ID\r\n       INNER JOIN ad_window w ON W.AD_WINDOW_ID = TAB.AD_WINDOW_ID\r\n WHERE F.AD_REFERENCE_ID = 30 AND F.ISDISPLAYED = 'Y'\r\nORDER BY W.NAME",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\drill down.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 48,
+    "name": "fields translate.sql",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "/* Formatted on 31/07/2019 11:21:03  (QP5 v5.139.911.3011) */\r\nedit ad_field_trl where ad_field_id in\r\n(SELECT ad_field_id\r\n   FROM ad_field\r\n  WHERE ISDISPLAYED = 'Y'\r\n        AND ad_tab_id IN (SELECT ad_tab_id\r\n                            FROM ad_tab\r\n                           WHERE ad_window_id = ????));",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\fields translate.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 49,
+    "name": "repated checks in bankstatment.sql",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "DECLARE\r\n   v_c   NUMBER := 0;\r\nBEGIN\r\n   FOR r IN (SELECT L.C_PAYMENT_ID,\r\n                    P.CHECKNO,\r\n                    P.C_BANKACCOUNT_ID,\r\n                    P.DOCUMENTNO\r\n               FROM    C_BANKSTATEMENTLINE l\r\n                    INNER JOIN\r\n                       C_PAYMENT p\r\n                    ON P.C_PAYMENT_ID = L.C_PAYMENT_ID\r\n              WHERE p.IsReceipt = 'N' AND L.C_BANKSTATEMENT_ID = 1000340)\r\n   LOOP\r\n      BEGIN\r\n         SELECT COUNT (*)\r\n           INTO v_c\r\n           FROM C_Payment\r\n          WHERE     IsReceipt = 'N'\r\n                AND C_Payment_ID <> r.C_Payment_ID\r\n                AND CheckNo = r.CheckNo\r\n                AND C_BankAccount_ID = r.C_BankAccount_ID;\r\n      EXCEPTION\r\n         WHEN OTHERS\r\n         THEN\r\n            v_c := 0;\r\n      END;\r\n\r\n      IF (v_c > 0)\r\n      THEN\r\n         DBMS_OUTPUT.PUT_LINE ('AP Payment No = ' || r.documentno || ' - ID =' || r.C_PAYMENT_ID);\r\n      END IF;\r\n   END LOOP;\r\nEND;",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\repated checks in bankstatment.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 50,
+    "name": "sales view with new function.sql",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "SELECT i.AD_CLIENT_ID, i.AD_ORG_ID, i.c_currency_id, U.AD_USER_ID, U.NAME salesrep,\n         SUM (sumrep.TOTALLINES) totalrep, SUM (sumrep.grandtotal) grandrep,\n         I.dateinvoiced, TO_CHAR (I.DATEINVOICED, 'YYYY') year, TO_CHAR (I.DATEINVOICED, 'Q') Quarter,\n         TO_CHAR (I.DATEINVOICED, 'MM') Month, SUM (I.TOTALLINES) TOTALLINES, SUM (I.grandtotal) grandtotal\n    FROM c_invoice i LEFT JOIN (SELECT ad_user_id, NAME FROM ad_user) u ON U.AD_USER_ID = I.SALESREP_ID\n         INNER JOIN (SELECT c_doctype_id, NAME, docbasetype, ismemo FROM c_doctype) dt ON (dt.c_doctype_id = i.c_doctype_id)\n         LEFT JOIN c_bpartner P ON P.C_BPARTNER_ID = I.C_BPARTNER_ID\n   WHERE I.ISSOTRX = 'Y' AND dt.docbasetype = 'ARI' AND dt.ismemo = 'N' AND i.DOCSTATUS IN ('CO', 'CL')\nGROUP BY i.AD_CLIENT_ID, i.AD_ORG_ID, i.c_currency_id, i.C_BPARTNER_ID, P.NAME, U.AD_USER_ID, I.DATEINVOICED, U.NAME",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\sales view with new function.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 51,
+    "name": "TOAD-SCHDUAL-WIZARD-TUTORIAL.txt",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "For Toad for Oracle 10.0 and above:\r\n1. Select Utilities | Automation Designer menu option\r\n2. Select DB Misc tab from right side pane\r\n3. Double click on Execute Script to add under Action list\r\n4. Double click on Execute Script 1 action to open it\r\n5. Select Text radio button and enter query statement\r\n6. Under Output pane, designate the Output destination\r\n7. Hit Apply and Cancel\r\n8. Right click on Execute Script 1 action and hit Run\r\n9. Right click on Execute Script 1 action and hit Schedule\r\n10. Select Utilities | Task Scheduler menu option to view this job",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\TOAD-SCHDUAL-WIZARD-TUTORIAL.txt",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 52,
+    "name": "WF wf WF .txt",
+    "category": "Queries",
+    "description": "Select query",
+    "content": "SELECT ad_table.tablename, c_doc_v.documentno, ad_wf_activity.*\r\n    FROM ad_wf_activity\r\n         LEFT JOIN ad_table ON ad_table.ad_table_id = ad_wf_activity.ad_table_id\r\n         LEFT OUTER JOIN c_doc_v ON C_DOC_V.RECORD_ID = ad_wf_activity.RECORD_ID\r\n   WHERE ad_wf_activity.wfstate = 'OS' AND ad_table.tablename = 'C_Transfer'\r\nORDER BY ad_wf_activity.ad_table_id, c_doc_v.documentno",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Queries\\WF wf WF .txt",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  }
+]
