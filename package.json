@@ -1,0 +1,19 @@
+{
+  "name": "sql-scripts-manager",
+  "version": "2.0.0",
+  "description": "SQL Scripts Manager v2.0 with SQLite and Web UI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "keywords": [
+    "sql",
+    "manager",
+    "sqlite"
+  ],
+  "author": "abdulnasser90",
+  "license": "MIT"
+}
