@@ -27,6 +27,42 @@ db.exec(`
     );
 `);
 
+// Auto-seed database if empty (e.g. on fresh deploy or clone)
+try {
+    const currentCount = db.prepare(`SELECT COUNT(*) as c FROM scripts`).get().c;
+    if (currentCount === 0) {
+        const seedFiles = fs.readdirSync(BASE_DIR).filter(f => f.startsWith('seed') && f.endsWith('.json')).sort();
+        const insertStmt = db.prepare(`
+            INSERT INTO scripts (id, name, category, description, content, is_duplicate, is_favorite, file_path, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        for (const sFile of seedFiles) {
+            try {
+                const seedData = JSON.parse(fs.readFileSync(path.join(BASE_DIR, sFile), 'utf8'));
+                for (const item of seedData) {
+                    insertStmt.run(
+                        item.id,
+                        item.name,
+                        item.category,
+                        item.description || '',
+                        item.content || '',
+                        item.is_duplicate || 0,
+                        item.is_favorite || 0,
+                        item.file_path || `${item.category}/${item.name}`,
+                        item.created_at || new Date().toISOString(),
+                        item.updated_at || new Date().toISOString()
+                    );
+                }
+                console.log(`Seeded ${seedData.length} scripts from ${sFile}`);
+            } catch (e) {
+                console.warn(`Could not seed from ${sFile}:`, e.message);
+            }
+        }
+    }
+} catch (e) {
+    console.warn('Auto-seed check notice:', e.message);
+}
+
 // Helper to send JSON responses
 function sendJSON(res, data, status = 200) {
     res.writeHead(status, {
