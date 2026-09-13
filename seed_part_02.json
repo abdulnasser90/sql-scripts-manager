@@ -1,0 +1,122 @@
+[
+  {
+    "id": 15,
+    "name": "catex asset asset group change fix script.sql",
+    "category": "Fixes_Updates",
+    "description": "Updates records in table a_asset_acct",
+    "content": "UPDATE a_asset_acct SET A_ASSET_ACCT.A_ACCUMDEPRECIATION_ACCT = (SELECT A_ASSET_GROUP_ACCT.A_ACCUMDEPRECIATION_ACCT\n                                  FROM A_ASSET_GROUP_ACCT \n                                  WHERE A_ASSET_ACCT.A_ASSET_GROUP_ID = A_ASSET_GROUP_ACCT.A_ASSET_GROUP_ID and A_ASSET_ACCT.C_ACCTSCHEMA_ID = A_ASSET_GROUP_ACCT.C_ACCTSCHEMA_ID),\n                                  A_ASSET_ACCT.A_ASSET_ACCT = (SELECT A_ASSET_GROUP_ACCT.A_ASSET_ACCT\n                                  FROM A_ASSET_GROUP_ACCT \n                                  WHERE A_ASSET_ACCT.A_ASSET_GROUP_ID = A_ASSET_GROUP_ACCT.A_ASSET_GROUP_ID and A_ASSET_ACCT.C_ACCTSCHEMA_ID = A_ASSET_GROUP_ACCT.C_ACCTSCHEMA_ID),\n                                  A_ASSET_ACCT.A_DISPOSAL_LOSS_ACCT = (SELECT A_ASSET_GROUP_ACCT.A_DISPOSAL_LOSS_ACCT\n                                  FROM A_ASSET_GROUP_ACCT \n                                  WHERE A_ASSET_ACCT.A_ASSET_GROUP_ID = A_ASSET_GROUP_ACCT.A_ASSET_GROUP_ID and A_ASSET_ACCT.C_ACCTSCHEMA_ID = A_ASSET_GROUP_ACCT.C_ACCTSCHEMA_ID),\n                                  A_ASSET_ACCT.A_DISPOSAL_REVENUE_ACCT = (SELECT A_ASSET_GROUP_ACCT.A_DISPOSAL_REVENUE_ACCT\n                                  FROM A_ASSET_GROUP_ACCT \n                                  WHERE A_ASSET_ACCT.A_ASSET_GROUP_ID = A_ASSET_GROUP_ACCT.A_ASSET_GROUP_ID and A_ASSET_ACCT.C_ACCTSCHEMA_ID = A_ASSET_GROUP_ACCT.C_ACCTSCHEMA_ID),\n                                  A_ASSET_ACCT.A_DEPRECIATION_ACCT = (SELECT A_ASSET_GROUP_ACCT.A_DEPRECIATION_ACCT\n                                  FROM A_ASSET_GROUP_ACCT \n                                  WHERE A_ASSET_ACCT.A_ASSET_GROUP_ID = A_ASSET_GROUP_ACCT.A_ASSET_GROUP_ID and A_ASSET_ACCT.C_ACCTSCHEMA_ID = A_ASSET_GROUP_ACCT.C_ACCTSCHEMA_ID)\n\n\n\n\n\n\n\n\n\n",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Fixes_Updates/catex asset asset group change fix script.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 14:24:26"
+  },
+  {
+    "id": 16,
+    "name": "change tax vendor.sql",
+    "category": "Fixes_Updates",
+    "description": "Updates records in table c_tax",
+    "content": "UPDATE c_tax\nSET c_bpartner_id = 1004128\nwhere C_TAX_ID IN (1000000,1000001,1000002,1000003,1000004,1000005,1000006,1000007,1000008,1000009)",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Fixes_Updates/change tax vendor.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 14:24:29"
+  },
+  {
+    "id": 17,
+    "name": "FA-Leavev-Balace-Fix.SQL",
+    "category": "Fixes_Updates",
+    "description": "Updates records in table HR_Leave_Balance",
+    "content": "UPDATE HR_Leave_Balance b\nSET b.Leave_Balance =\nNVL((SELECT (nvl(l.Yearly_Balance,0)+nvl(l.ROUNDED_TRANSFERRED_BALANCE,0)) - nvl(l.LEAVE_TAKEN,0)\nFROM HR_Employee_Leave l\nWHERE l.HR_Employee_ID = b.HR_Employee_ID\nAND l.C_Year_ID = b.C_Year_ID\nAND l.HR_Leave_Type_ID = b.HR_Leave_Type_ID),0)",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Fixes_Updates/FA-Leavev-Balace-Fix.SQL",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 14:24:34"
+  },
+  {
+    "id": 18,
+    "name": "Convert TextMsg column to CLOB",
+    "category": "Fixes_Updates",
+    "description": "fix table AD_WF_ACTIVITY to Convert TextMsg column to CLOB",
+    "content": "-- Need Sys Paramter 'IS_USE_WF_CLOB_TXTMSG'\n-- Edit TextMsg column in dictionary to be text long\n\nALTER TABLE AD_WF_ACTIVITY\nADD TextMsg2 NVARCHAR2(2000);\n\nUPDATE AD_WF_ACTIVITY\nSET TextMsg2 = TextMsg;\n\nALTER TABLE AD_WF_ACTIVITY\nDROP COLUMN TextMsg;\n\nALTER TABLE AD_WF_ACTIVITY\nADD TextMsg CLOB;\n\nUPDATE AD_WF_ACTIVITY\nSET TextMsg = TextMsg2;\n\nALTER TABLE AD_WF_ACTIVITY\nDROP COLUMN TextMsg2;\n",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Fixes_Updates/Convert TextMsg column to CLOB",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 14:26:23"
+  },
+  {
+    "id": 19,
+    "name": "fix pos receipt moveement qty.txt",
+    "category": "Fixes_Updates",
+    "description": "Updates records in table POS_Receipt",
+    "content": "/* Formatted on 18/09/2023 03:00:39 (QP5 v5.381) */\r\nUPDATE POS_Receipt s\r\n   SET s.DOCACTION = 'CL',\r\n       s.DOCSTATUS = 'CO',\r\n       s.PROCESSED = 'Y',\r\n       s.ERRORS = NULL\r\n WHERE s.POS_RECEIPT_ID = ?;",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Fixes_Updates\\fix pos receipt moveement qty.txt",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 20,
+    "name": "Giant change movment qty.txt",
+    "category": "Fixes_Updates",
+    "description": "Updates records in table m_inoutline",
+    "content": "/* Formatted on 09/06/2020 12:25:29  (QP5 v5.139.911.3011) */\r\nSELECT I.QTYENTERED, I.MOVEMENTQTY\r\n  FROM m_inoutline i\r\n WHERE i.m_inoutline_id IN (1097640, 1097573);\r\n\r\nUPDATE m_inoutline i\r\n   SET I.QTYENTERED = 1.270, I.MOVEMENTQTY = 1270\r\n WHERE i.m_inoutline_id IN (1097640, 1097573);\r\n\r\n\r\nedit m_transaction\r\nWHERE m_inoutline_id IN (1097640, 1097573);\r\n\r\nUPDATE m_transaction\r\n   SET totalcost = movementqty * unitcost\r\n WHERE m_inoutline_id IN (1097640, 1097573);",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Fixes_Updates\\Giant change movment qty.txt",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  },
+  {
+    "id": 21,
+    "name": "load data eaisest way pricelistsd.sql",
+    "category": "Others",
+    "description": "Updates records in table x_pp",
+    "content": "create table x_pp ( code varchar2(100) , price number , m_product_id number(10) );\n\n\"insert into x_pp (code, price) values ('\",c2,\"',\",f2,\");\"\n\nupdate x_pp x set m_product_id = (select p.m_product_id from m_product p where p.value = x.code);\n\ndelete m_productprice where M_PriceList_Version_id in (1000604,1000602)\n\ninsert into m_productprice ( M_PRICELIST_VERSION_ID,\nM_PRODUCT_ID,\nAD_CLIENT_ID,\nAD_ORG_ID,\nISACTIVE,\nCREATED,\nCREATEDBY,\nUPDATED,\nUPDATEDBY,\nPRICELIST,\nPRICESTD,\nPRICELIMIT,\nM_PRODUCTPRICE_UU )\nselect \n1000604 M_PRICELIST_VERSION_ID,\nM_PRODUCT_ID,\n11 AD_CLIENT_ID,\n11 AD_ORG_ID,\n'Y' ISACTIVE,\nsysdate CREATED,\n100 CREATEDBY,\nsysdate UPDATED,\n100 UPDATEDBY,\nprice PRICELIST,\nprice PRICESTD,\nprice PRICELIMIT,\n'1000604' || '-' || M_PRODUCT_ID M_PRODUCTPRICE_UU\nfrom x_pp\nwhere m_product_id is not null",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Others/load data eaisest way pricelistsd.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 14:27:33"
+  },
+  {
+    "id": 22,
+    "name": "SCRIPT-FIX-M_StorageOnHand-CARTOON.sql",
+    "category": "Fixes_Updates",
+    "description": "Fix the mismatch between On Hand qty and item card **Cartoon Projects**",
+    "content": "UPDATE M_STORAGEONHAND s\nSET S.QTYONHAND =\nNVL((SELECT SUM (t.movementqty)\nFROM M_TRANSACTION t\nWHERE T.M_PRODUCT_ID = s.M_PRODUCT_ID\nAND t.m_locator_id = s.m_locator_id\nAND t.m_attributesetinstance_id =\nS.M_ATTRIBUTESETINSTANCE_ID),0)",
+    "is_duplicate": 0,
+    "is_favorite": 1,
+    "file_path": "Fixes_Updates\\SCRIPT-FIX-M_StorageOnHand-CARTOON.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:46:43"
+  },
+  {
+    "id": 23,
+    "name": "update with join.sql",
+    "category": "Others",
+    "description": "Updates records in table c_invoiceline",
+    "content": "UPDATE c_invoiceline SET c_invoiceline.M_INOUTLINE_ID = (SELECT M_INOUTLINE.M_INOUTLINE_ID\n                                  FROM M_INOUTLINE \n                                  WHERE c_invoiceline.m_product_id = M_INOUTLINE.m_product_id and M_INOUTLINE.M_INOUT_ID =1031834)\nWHERE c_invoiceline.c_invoice_id =1050978\n\n",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Others/update with join.sql",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 14:27:43"
+  },
+  {
+    "id": 24,
+    "name": "UpdateSQandGrid.txt",
+    "category": "Fixes_Updates",
+    "description": "Updates records in table ad_field",
+    "content": "/* Formatted on 8/3/2015 3:07:43 PM (QP5 v5.139.911.3011) */\r\nUPDATE ad_field\r\n   SET AD_FIELD.SEQNOGRID = AD_FIELD.SEQNO,\r\n       AD_FIELD.ISDISPLAYEDGRID = AD_FIELD.ISDISPLAYED\r\n WHERE AD_FIELD.AD_TAB_ID IN (1000026)\r\n\r\n\r\n/* Formatted on 17/09/2019 11:20:50  (QP5 v5.139.911.3011) */\r\nUPDATE ad_field\r\n   SET AD_FIELD.ISUPDATEABLE = 'N', AD_FIELD.ISALWAYSUPDATEABLE = 'N'\r\n WHERE AD_FIELD.AD_FIELD_ID IN\r\n          (SELECT ad_field_id\r\n             FROM ad_field\r\n            WHERE AD_TAB_ID IN (SELECT AD_TAB_ID\r\n                                  FROM AD_TAB\r\n                                 WHERE AD_WINDOW_ID = 1000460))\r\n       AND AD_FIELD.ISDISPLAYED = 'Y';",
+    "is_duplicate": 0,
+    "is_favorite": 0,
+    "file_path": "Fixes_Updates\\UpdateSQandGrid.txt",
+    "created_at": "2026-09-10 12:14:29",
+    "updated_at": "2026-09-10 12:14:38"
+  }
+]
